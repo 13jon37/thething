@@ -3,19 +3,23 @@ extern crate sdl2;
 mod entity_trait;
 mod util;
 mod player;
+mod tilemanager;
 
 use crate::entity_trait::EntityDefault;
 use crate::util::Point;
-use crate::player::{Player};
+use crate::player::Player;
+use crate::tilemanager::TileManager;
 
 use sdl2::pixels::Color;
-use sdl2::rect::Rect;
 use sdl2::event::Event;
+use sdl2::image::{self, InitFlag};
 use std::time::Duration;
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
+
+    let _image_context = image::init(InitFlag::PNG | InitFlag::JPG)?;
 
     let window = video_subsystem.window("Thething", 800, 600)
         .position_centered()
@@ -27,26 +31,12 @@ fn main() -> Result<(), String> {
         .build()
         .expect("failed to create canvas");
 
+    let texture_creator = canvas.texture_creator();
+
     let mut event_pump = sdl_context.event_pump()?;
 
-    let mut player = Player::new(Point::new(250, 250), Point::new(64, 64), 5);
-
-    const LEVEL_WIDTH: usize = 5;
-    const LEVEL_HEIGHT: usize = 5;
-
-    //let mut level = vec![vec![0; LEVEL_WIDTH]; LEVEL_HEIGHT];
-    let level: [[i32; LEVEL_HEIGHT]; LEVEL_WIDTH] =
-        [[0, 0, 0, 0, 0],
-         [0, 0, 0, 0, 0],
-         [0, 1, 0, 0, 0],
-         [0, 1, 0, 0, 0],
-         [0, 1, 0, 1, 1]];
-
-    println!("{:?}", level);
-
-    //level[0][4] = 1;
-    //level[0][2] = 1;
-    //level[0][1] = 1;
+    let mut player = Player::new(Point::new(100, 100), Point::new(64, 64), 5);
+    let tilemanager = TileManager::new(&texture_creator);
 
     // Handle events
     'running: loop {
@@ -59,26 +49,14 @@ fn main() -> Result<(), String> {
             }
         }
         // Update
-        player.input(&event_pump);
+        player.input_and_update(&event_pump);
 
         // Render
         canvas.set_draw_color(Color::RGB(0, 0, 0));
         canvas.clear();
 
         player.render(&mut canvas)?;
-        for y in 0..LEVEL_HEIGHT {
-            for x in 0..LEVEL_WIDTH {
-                match level[y][x] {
-                    1 => {
-                        canvas.set_draw_color(Color::RGB(255, 0, 255));
-                        canvas.fill_rect(Rect::new((y * 64) as i32,
-                                                   (x * 64) as i32,
-                                                   64, 64))?;
-                    },
-                    _ => {}
-                }
-            }
-        }
+        tilemanager.render_level(&mut canvas)?;
 
         canvas.present();
 

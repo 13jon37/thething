@@ -30,7 +30,7 @@ impl Player {
         }
     }
 
-    pub fn input(&mut self, e: &sdl2::EventPump) {
+    pub fn input_and_update(&mut self, e: &sdl2::EventPump) {
         if e.keyboard_state().is_scancode_pressed(Scancode::A) {
             self.moving = true;
             self.direction = Direction::Left;
@@ -41,14 +41,14 @@ impl Player {
             self.direction = Direction::Right;
             self.position.x += 5;
         }
+        self.position.y += self.dy; // Gravity
         self.moving = false;
     }
 }
 
 impl EntityDefault for Player {
     // This method was pretty much replaced by the player input method
-    fn update(&mut self) {
-    }
+    fn update(&mut self) {}
 
     fn render(&self, canvas: &mut WindowCanvas) -> Result<(), String> {
         canvas.set_draw_color(Color::RGB(255, 255, 255));
