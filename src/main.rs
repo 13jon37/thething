@@ -35,7 +35,11 @@ fn main() -> Result<(), String> {
 
     let mut event_pump = sdl_context.event_pump()?;
 
-    let mut player = Player::new(Point::new(100, 100), Point::new(64, 64), 5);
+    let mut player = Player::new(&texture_creator,
+                                 Point::new(100, 100), // Position
+                                 Point::new(64, 64),   // Size
+                                 5);                   // Speed
+
     let tilemanager = TileManager::new(&texture_creator);
 
     // Handle events
