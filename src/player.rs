@@ -15,13 +15,14 @@ pub enum Direction {
 
 pub struct Player<'a> {
     texture: Texture<'a>,
-    position: Point<i32>,
+    pub position: Point<i32>,
     size: Point<u32>,
     dy: i32, // Gravity Y
     direction: Direction,
     moving: bool,
     jumping: bool,
     current_frame: i32,
+    pub colliding: bool,
 }
 
 impl<'a> Player<'a> {
@@ -40,6 +41,7 @@ impl<'a> Player<'a> {
             moving: false,
             jumping: false,
             current_frame: 0,
+            colliding: false,
         }
     }
 
@@ -66,6 +68,7 @@ impl<'a> Player<'a> {
         }
         if e.keyboard_state().is_scancode_pressed(Scancode::Space) || input.jump {
             self.jumping = true;
+            self.colliding = false;
             self.position.y -= self.dy * 2; // Jump
         }
 
@@ -87,7 +90,9 @@ impl<'a> Player<'a> {
                 }
             }
         }
-        self.position.y += self.dy; // Gravity
+        if !self.colliding {
+            self.position.y += self.dy; // Gravity
+        }
         self.moving = false;
         self.jumping = false;
     }
