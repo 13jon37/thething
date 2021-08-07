@@ -1,38 +1,19 @@
 extern crate sdl2;
 
+mod entity;
+mod entity_manager;
 mod entity_trait;
 mod input;
-mod player;
-mod tilemanager;
+mod scene_manager;
+mod tile_manager;
 mod util;
 
-use crate::entity_trait::EntityDefault;
-use crate::input::Input;
-use crate::player::Player;
-use crate::tilemanager::TileManager;
-use crate::util::Point;
+use crate::{entity::Entity, input::Input, scene_manager::SceneManager, util::Point};
 
 use sdl2::event::Event;
 use sdl2::image::{self, InitFlag};
-use sdl2::pixels::Color;
-use std::time::Duration;
 
-fn collision(player: &mut Player, tiles: &TileManager) {
-    for i in 0..tiles.tile_pos.len() {
-        if player.position.x + 32 >= tiles.tile_pos[i].x
-            && player.position.x <= tiles.tile_pos[i].x + 32
-        {
-            if player.position.y + 64 >= tiles.tile_pos[i].y
-                && player.position.y <= tiles.tile_pos[i].y + 64
-            {
-                player.colliding = true;
-                player.position.y = tiles.tile_pos[i].y - 64;
-            }
-        } else {
-            player.colliding = false;
-        }
-    }
-}
+use std::time::Duration;
 
 fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
@@ -84,15 +65,29 @@ fn main() -> Result<(), String> {
 
     let mut game_input = Input::new();
 
-    let mut player = Player::new(
-        &texture_creator,
-        Point::new(100, 100), // Position
-        Point::new(64, 64),   // Size
-        5,                    // Speed
-    );
-    let mut tilemanager = TileManager::new(&texture_creator);
+    // Instaniate scene manager
+    let mut scene_manager = SceneManager::new(&texture_creator);
 
-    let mut counter = 0; // In order to time animation for player
+    // Instansiate player
+    let player = Entity::new(
+        &texture_creator,
+        "Assets/player.png",
+        Point::new(50, 50),
+        Point::new(64, 64),
+        5,
+    );
+
+    // Add an entity to the scene
+    scene_manager.entity_manager.create(player);
+
+    // Add random other entity to the screen
+    scene_manager.entity_manager.create(Entity::new(
+        &texture_creator,
+        "Assets/player.png",
+        Point::new(150, 50),
+        Point::new(64, 64),
+        5,
+    ));
 
     // Handle events
     'running: loop {
@@ -135,20 +130,9 @@ fn main() -> Result<(), String> {
                 _ => {}
             }
         }
-        // Update
-        player.input_and_update(&mut event_pump, &mut game_input, counter);
-        collision(&mut player, &tilemanager);
 
-        // Render
-        canvas.set_draw_color(Color::RGB(255, 255, 255));
-        canvas.clear();
+        scene_manager.update_and_render(&mut event_pump, &mut canvas, &mut game_input)?;
 
-        player.render(&mut canvas)?;
-        tilemanager.render_level(&mut canvas)?;
-
-        canvas.present();
-
-        counter += 1;
         // Limit fps
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
