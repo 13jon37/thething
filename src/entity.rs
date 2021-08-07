@@ -19,7 +19,7 @@ pub struct Entity<'a> {
     size: Point<u32>,
     direction: Direction,
     current_frame: u8,
-    moving: bool,
+    pub moving: bool,
     pub colliding: bool,
     _dy: u8,
 }
@@ -78,6 +78,7 @@ impl<'a> Entity<'a> {
                 self.current_frame = (self.current_frame + 1) % 3;
             }
         }
+
         if !self.moving {
             // Set player to the idle standing sprite
             match self.direction {
@@ -89,9 +90,11 @@ impl<'a> Entity<'a> {
                 }
             }
         }
+
         if !self.colliding {
             self.position.y += self._dy as i32; // Gravity
         }
+
         self.moving = false;
     }
 }

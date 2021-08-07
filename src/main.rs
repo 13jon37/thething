@@ -3,12 +3,16 @@ extern crate sdl2;
 mod entity;
 mod entity_manager;
 mod entity_trait;
+mod game_state_manager;
 mod input;
 mod scene_manager;
 mod tile_manager;
 mod util;
 
-use crate::{entity::Entity, input::Input, scene_manager::SceneManager, util::Point};
+use crate::{
+    entity::Entity, game_state_manager::GameStateManager, input::Input,
+    scene_manager::SceneManager, util::Point,
+};
 
 use sdl2::event::Event;
 use sdl2::image::{self, InitFlag};
@@ -65,10 +69,12 @@ fn main() -> Result<(), String> {
 
     let mut game_input = Input::new();
 
-    // Instaniate scene manager
-    let mut scene_manager = SceneManager::new(&texture_creator);
+    // Create game state instance
+    let game_state = GameStateManager::new();
 
-    // Instansiate player
+    let mut start_scene = SceneManager::new(&texture_creator);
+    let mut level_one_scene = SceneManager::new(&texture_creator);
+
     let player = Entity::new(
         &texture_creator,
         "Assets/player.png",
@@ -77,14 +83,14 @@ fn main() -> Result<(), String> {
         5,
     );
 
-    // Add an entity to the scene
-    scene_manager.entity_manager.create(player);
+    // Add player to level one scene
+    level_one_scene.entity_manager.create(player);
 
-    // Add random other entity to the screen
-    scene_manager.entity_manager.create(Entity::new(
+    // Add random entity to scene one
+    level_one_scene.entity_manager.create(Entity::new(
         &texture_creator,
-        "Assets/player.png",
-        Point::new(150, 50),
+        "Assets/enemy.png",
+        Point::new(20, 50),
         Point::new(64, 64),
         5,
     ));
@@ -131,7 +137,11 @@ fn main() -> Result<(), String> {
             }
         }
 
-        scene_manager.update_and_render(&mut event_pump, &mut canvas, &mut game_input)?;
+        if game_state.start_screen {
+            start_scene.update_and_render(&mut event_pump, &mut canvas, &mut game_input)?;
+        } else if game_state.level_one {
+            level_one_scene.update_and_render(&mut event_pump, &mut canvas, &mut game_input)?;
+        }
 
         // Limit fps
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));

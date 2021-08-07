@@ -25,11 +25,13 @@ impl<'a> EntityManager<'a> {
 
             match entity {
                 // Player should always be the 0th entity
+                // mostly because i'm just confused as how to handle this
                 PLAYER => {
                     self.entities[PLAYER].input(e, input);
                 }
                 _ => {
                     self.entities[entity].position.x += 5;
+                    self.entities[entity].moving = true;
                 }
             }
         }
